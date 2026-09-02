@@ -1,14 +1,15 @@
 import { useState, useCallback } from 'react';
 import { MapViewport, GeoJSONLayer } from '../types';
+import { mockLayers } from '../data/mockData';
 
 export const useMapSync = () => {
   const [viewport, setViewport] = useState<MapViewport>({
-    latitude: 15,
-    longitude: 75,
-    zoom: 5
+    latitude: 18.5,
+    longitude: 73.0,
+    zoom: 6
   });
 
-  const [layers, setLayers] = useState<GeoJSONLayer[]>([]);
+  const [layers, setLayers] = useState<GeoJSONLayer[]>(mockLayers);
 
   const addLayer = useCallback((layer: GeoJSONLayer) => {
     setLayers(prev => [...prev.filter(l => l.id !== layer.id), layer]);
@@ -33,12 +34,10 @@ export const useMapSync = () => {
 
   const fitBounds = useCallback((bbox: [number, number, number, number]) => {
     const [minLon, minLat, maxLon, maxLat] = bbox;
-    const centerLat = (minLat + maxLat) / 2;
-    const centerLon = (minLon + maxLon) / 2;
     setViewport(prev => ({
       ...prev,
-      latitude: centerLat,
-      longitude: centerLon
+      latitude: (minLat + maxLat) / 2,
+      longitude: (minLon + maxLon) / 2,
     }));
   }, []);
 
