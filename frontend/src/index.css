@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+@theme {
+  --color-orca-bg-primary: #0a1628;
+  --color-orca-bg-secondary: #0f1d32;
+  --color-orca-bg-tertiary: #162544;
+  --color-orca-bg-surface: #1a2d4a;
+  --color-orca-text-primary: #e2e8f0;
+  --color-orca-text-secondary: #94a3b8;
+  --color-orca-text-muted: #64748b;
+  --color-orca-accent: #2dd4bf;
+  --color-orca-accent-blue: #3b82f6;
+  --color-orca-border: rgba(255, 255, 255, 0.06);
+  --color-orca-border-active: rgba(255, 255, 255, 0.12);
+  --color-orca-danger: #ef4444;
+  --color-orca-warning: #f59e0b;
+  --color-orca-success: #10b981;
+}
+
+:root {
+  --orca-bg-primary: #0a1628;
+  --orca-bg-secondary: #0f1d32;
+  --orca-bg-tertiary: #162544;
+  --orca-bg-surface: #1a2d4a;
+  --orca-text-primary: #e2e8f0;
+  --orca-text-secondary: #94a3b8;
+  --orca-text-muted: #64748b;
+  --orca-accent: #2dd4bf;
+  --orca-accent-blue: #3b82f6;
+  --orca-border: rgba(255,255,255,0.06);
+  --orca-border-active: rgba(255,255,255,0.12);
+  --orca-danger: #ef4444;
+  --orca-warning: #f59e0b;
+  --orca-success: #10b981;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--orca-bg-primary);
+  color: var(--orca-text-primary);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background-color: var(--orca-accent);
+  color: var(--orca-bg-primary);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--orca-bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--orca-bg-surface);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--orca-border-active);
+}
+
+@keyframes wave {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(-10px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes pulse-subtle {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+@keyframes float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+  100% { transform: translateY(0); }
+}
