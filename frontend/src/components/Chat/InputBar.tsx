@@ -122,7 +122,7 @@ const InputBar: React.FC<InputBarProps> = ({ onSendMessage, isStreaming }) => {
           disabled={isStreaming}
           rows={1}
           className="flex-1 bg-transparent border-none outline-none resize-none text-[var(--orca-text-primary)] placeholder-[var(--orca-text-muted)] text-sm py-2 max-h-[120px] font-sans"
-          style={{ systemFont: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}
+          style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}
         />
 
         <button

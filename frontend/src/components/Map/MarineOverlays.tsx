@@ -1,4 +1,3 @@
-import React from 'react';
 import { MarineData } from '../../types';
 
 interface MarineOverlaysProps {
@@ -6,7 +5,7 @@ interface MarineOverlaysProps {
   marineData?: MarineData;
 }
 
-export default function MarineOverlays({ activeLayers, marineData }: MarineOverlaysProps) {
+export default function MarineOverlays({ activeLayers, marineData: _marineData }: MarineOverlaysProps) {
   const showWave = activeLayers.includes('wave');
   const showSst = activeLayers.includes('sst');
   const showCurrent = activeLayers.includes('current');

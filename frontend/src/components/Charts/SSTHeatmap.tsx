@@ -73,7 +73,7 @@ export const SSTHeatmap: React.FC<SSTHeatmapProps> = ({ data, title }) => {
       <div style={{ position: 'relative', display: 'inline-block' }}>
         <div style={{
           display: 'grid',
-          gridTemplateColumns: \`repeat(\${gridCols}, 1fr)\`,
+          gridTemplateColumns: 'repeat(' + gridCols + ', 1fr)',
           gap: 0,
           border: '1px solid rgba(255,255,255,0.04)',
           backgroundColor: 'var(--orca-bg-tertiary, #162544)',

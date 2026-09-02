@@ -33,7 +33,7 @@ export const DataSparkline: React.FC<DataSparklineProps> = ({
   const points = data.map((d, i) => {
     const x = (i / (data.length - 1)) * width;
     const y = height - ((d - min) / range) * height;
-    return \`\${x},\${y}\`;
+    return x + ',' + y;
   }).join(' ');
 
   const lastPoint = points.split(' ').pop()?.split(',') || [0, 0];
@@ -44,7 +44,7 @@ export const DataSparkline: React.FC<DataSparklineProps> = ({
     <svg width={width} height={height} style={{ overflow: 'visible' }}>
       {/* Fill (Optional) */}
       <polygon 
-        points={\`0,\${height} \${points} \${width},\${height}\`} 
+        points={'0,' + height + ' ' + points + ' ' + width + ',' + height} 
         fill={color} 
         opacity={0.1} 
       />

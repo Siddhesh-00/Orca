@@ -73,14 +73,14 @@ export const WindRose: React.FC<WindRoseProps> = ({ windSpeed, windDirection, gu
         {/* Arrow (Wind Direction) */}
         <g 
           style={{ 
-            transformOrigin: \`\${center}px \${center}px\`, 
-            transform: \`rotate(\${rotation}deg)\`,
+            transformOrigin: center + 'px ' + center + 'px', 
+            transform: 'rotate(' + rotation + 'deg)',
             transition: 'transform 1s cubic-bezier(0.34, 1.56, 0.64, 1)' 
           }}
         >
           {/* Points from outer edge inward */}
           <line x1={center} y1={center - radius} x2={center} y2={center - radius + arrowLength} stroke={arrowColor} strokeWidth="3" strokeLinecap="round" />
-          <polygon points={\`\${center},\${center - radius + arrowLength + 4} \${center-4},\${center - radius + arrowLength - 4} \${center+4},\${center - radius + arrowLength - 4}\`} fill={arrowColor} />
+          <polygon points={center + ',' + (center - radius + arrowLength + 4) + ' ' + (center-4) + ',' + (center - radius + arrowLength - 4) + ' ' + (center+4) + ',' + (center - radius + arrowLength - 4)} fill={arrowColor} />
         </g>
       </svg>
       

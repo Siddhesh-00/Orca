@@ -5,7 +5,7 @@ import { useSession } from './useSession';
 
 export const useChat = () => {
   const { threadId } = useSession();
-  const { connectSSE, disconnect } = useSSE();
+  const { connectSSE, disconnect: _disconnect } = useSSE();
   
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);

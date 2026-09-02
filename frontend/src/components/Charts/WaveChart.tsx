@@ -116,7 +116,7 @@ export const WaveChart: React.FC<WaveChartProps> = ({ data, title, dangerThresho
                 strokeDasharray="3 3" 
                 label={{ 
                   position: 'insideTopLeft', 
-                  value: \`Danger (>\${dangerThreshold}m)\`, 
+                  value: 'Danger (>' + dangerThreshold + 'm)', 
                   fill: 'var(--orca-danger, #ef4444)', 
                   fontSize: 10,
                   fontFamily: 'ui-monospace, "SF Mono", monospace'

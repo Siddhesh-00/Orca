@@ -44,7 +44,7 @@ export const useSSE = () => {
           }
         };
 
-        es.onerror = (err) => {
+        es.onerror = (_err) => {
           es.close();
           setConnectionState('error');
           if (retryCountRef.current < maxRetries) {

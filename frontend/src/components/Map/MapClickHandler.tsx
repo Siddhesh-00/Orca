@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useMap, Popup, Marker } from 'react-map-gl/maplibre';
 
 interface MapClickHandlerProps {

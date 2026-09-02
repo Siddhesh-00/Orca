@@ -78,7 +78,7 @@ export const MarineDataCard: React.FC<MarineDataCardProps> = ({ data, title, com
 
       <div style={{
         display: 'grid',
-        gridTemplateColumns: \`repeat(\${cols}, 1fr)\`,
+        gridTemplateColumns: 'repeat(' + cols + ', 1fr)',
         gap: '20px 16px'
       }}>
         
@@ -104,7 +104,7 @@ export const MarineDataCard: React.FC<MarineDataCardProps> = ({ data, title, com
             {data.windDirection !== undefined && (
               <div style={{ display: 'flex', alignItems: 'center', marginLeft: '4px' }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
-                  style={{ transform: \`rotate(\${data.windDirection}deg)\`, color: 'var(--orca-text-muted, #64748b)' }}>
+                  style={{ transform: 'rotate(' + data.windDirection + 'deg)', color: 'var(--orca-text-muted, #64748b)' }}>
                   <line x1="12" y1="19" x2="12" y2="5"></line>
                   <polyline points="5 12 12 5 19 12"></polyline>
                 </svg>

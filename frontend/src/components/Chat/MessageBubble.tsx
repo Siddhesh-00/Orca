@@ -62,7 +62,6 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isStreamingLast 
               remarkPlugins={[remarkGfm]}
               components={{
                 code({node, inline, className, children, ...props}: any) {
-                  const match = /language-(\w+)/.exec(className || '');
                   return !inline ? (
                     <pre className="font-mono text-xs overflow-x-auto p-3">
                       <code className={className} {...props}>

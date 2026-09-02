@@ -36,7 +36,7 @@ const CustomDot = (props: any) => {
   const color = isHigh ? 'var(--orca-accent, #2dd4bf)' : 'var(--orca-text-muted, #64748b)';
   
   return (
-    <g transform={\`translate(\${cx},\${cy})\`}>
+    <g transform={'translate(' + cx + ',' + cy + ')'}>
       <circle r={4} fill={color} />
       <path 
         d={isHigh ? "M-3,-6 L3,-6 L0,-10 Z" : "M-3,6 L3,6 L0,10 Z"} 
