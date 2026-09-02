@@ -6,7 +6,7 @@ export const useMapSync = () => {
   const [viewport, setViewport] = useState<MapViewport>({
     latitude: 18.5,
     longitude: 73.0,
-    zoom: 6
+    zoom: 6,
   });
 
   const [layers, setLayers] = useState<GeoJSONLayer[]>(mockLayers);
@@ -28,7 +28,7 @@ export const useMapSync = () => {
       ...prev,
       latitude: lat,
       longitude: lon,
-      zoom: zoom ?? prev.zoom
+      zoom: zoom ?? Math.max(prev.zoom, 7),
     }));
   }, []);
 
@@ -42,19 +42,16 @@ export const useMapSync = () => {
   }, []);
 
   const getViewportBounds = useCallback((): [number, number, number, number] => {
-    const offsetLat = 10 / viewport.zoom;
-    const offsetLon = 10 / viewport.zoom;
+    const off = 10 / viewport.zoom;
     return [
-      viewport.longitude - offsetLon,
-      viewport.latitude - offsetLat,
-      viewport.longitude + offsetLon,
-      viewport.latitude + offsetLat
+      viewport.longitude - off,
+      viewport.latitude - off,
+      viewport.longitude + off,
+      viewport.latitude + off,
     ];
   }, [viewport]);
 
-  const clearLayers = useCallback(() => {
-    setLayers([]);
-  }, []);
+  const clearLayers = useCallback(() => setLayers([]), []);
 
   return {
     viewport,
@@ -66,6 +63,6 @@ export const useMapSync = () => {
     flyTo,
     fitBounds,
     getViewportBounds,
-    clearLayers
+    clearLayers,
   };
 };

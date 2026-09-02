@@ -5,92 +5,58 @@ interface MarineOverlaysProps {
   marineData?: MarineData;
 }
 
-export default function MarineOverlays({ activeLayers, marineData: _marineData }: MarineOverlaysProps) {
-  const showWave = activeLayers.includes('wave');
-  const showSst = activeLayers.includes('sst');
-  const showCurrent = activeLayers.includes('current');
+function compassDir(deg?: number): string {
+  if (deg === undefined) return '--';
+  const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+  return dirs[Math.round(deg / 22.5) % 16];
+}
+
+// Compact live-data readout shown in the bottom-right of the map
+export default function MarineOverlays({ activeLayers: _activeLayers, marineData }: MarineOverlaysProps) {
+  if (!marineData) return null;
+
+  const rows: [string, string][] = [
+    ['WAVE', marineData.waveHeight !== undefined ? marineData.waveHeight.toFixed(1) + ' m' : '--'],
+    ['PERIOD', marineData.wavePeriod !== undefined ? marineData.wavePeriod.toFixed(0) + ' s' : '--'],
+    ['SWELL', marineData.swellHeight !== undefined ? marineData.swellHeight.toFixed(1) + ' m' : '--'],
+    ['WIND', marineData.windSpeed !== undefined ? marineData.windSpeed.toFixed(0) + ' km/h ' + compassDir(marineData.windDirection) : '--'],
+    ['SST', marineData.sst !== undefined ? marineData.sst.toFixed(1) + ' °C' : '--'],
+    ['PRESS', marineData.pressure !== undefined ? marineData.pressure + ' hPa' : '--'],
+  ];
 
   return (
     <div style={{
       position: 'absolute',
-      bottom: '40px',
-      right: '10px',
+      bottom: 36,
+      right: 10,
       zIndex: 10,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '10px'
+      backgroundColor: 'rgba(10, 22, 40, 0.90)',
+      border: '1px solid rgba(255,255,255,0.08)',
+      fontFamily: 'ui-monospace, "SF Mono", monospace',
+      fontSize: '10px',
     }}>
-      {showWave && (
-        <div style={{
-          backgroundColor: 'rgba(26, 45, 74, 0.8)',
-          border: '1px solid var(--orca-border)',
-          padding: '8px',
-          width: '120px'
-        }}>
-          <div style={{ fontSize: '10px', color: 'var(--orca-text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>
-            Wave Height (m)
+      <div style={{
+        padding: '4px 8px',
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        color: 'var(--orca-accent)',
+        letterSpacing: '0.08em',
+        fontSize: '9px',
+      }}>
+        LIVE CONDITIONS
+      </div>
+      <div style={{ padding: '4px 0' }}>
+        {rows.map(([label, value]) => (
+          <div key={label} style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            gap: 16,
+            padding: '2px 8px',
+          }}>
+            <span style={{ color: 'var(--orca-text-muted)' }}>{label}</span>
+            <span style={{ color: 'var(--orca-text-primary)' }}>{value}</span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {[
-              { label: '6m+', color: '#ef4444' },
-              { label: '4m', color: '#f59e0b' },
-              { label: '2m', color: '#2dd4bf' },
-              { label: '0m', color: '#3b82f6' }
-            ].map(item => (
-              <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ width: '12px', height: '12px', backgroundColor: item.color }} />
-                <div style={{ fontSize: '10px', fontFamily: 'monospace', color: 'var(--orca-text-secondary)' }}>{item.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {showSst && (
-        <div style={{
-          backgroundColor: 'rgba(26, 45, 74, 0.8)',
-          border: '1px solid var(--orca-border)',
-          padding: '8px',
-          width: '120px'
-        }}>
-          <div style={{ fontSize: '10px', color: 'var(--orca-text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>
-            Sea Surface Temp
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {[
-              { label: '35°C', color: '#ef4444' },
-              { label: '30°C', color: '#f87171' },
-              { label: '20°C', color: '#2dd4bf' },
-              { label: '15°C', color: '#1e3a8a' }
-            ].map(item => (
-              <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ width: '12px', height: '12px', backgroundColor: item.color }} />
-                <div style={{ fontSize: '10px', fontFamily: 'monospace', color: 'var(--orca-text-secondary)' }}>{item.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {showCurrent && (
-        <div style={{
-          backgroundColor: 'rgba(26, 45, 74, 0.8)',
-          border: '1px solid var(--orca-border)',
-          padding: '8px',
-          width: '120px'
-        }}>
-          <div style={{ fontSize: '10px', color: 'var(--orca-text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>
-            Ocean Current
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
-            <div style={{ fontSize: '10px', fontFamily: 'monospace', color: 'var(--orca-text-secondary)' }}>Direction</div>
-          </div>
-        </div>
-      )}
+        ))}
+      </div>
     </div>
   );
 }

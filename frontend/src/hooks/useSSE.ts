@@ -1,71 +1,100 @@
+// useSSE is preserved for future backend integration.
+// Currently the app uses direct API calls via useChat + services/orca.ts
+// This hook provides the SSE infrastructure to connect to a FastAPI backend
+// when the Python backend is running.
+
 import { useState, useRef, useCallback } from 'react';
 import { SSEEvent } from '../types';
-import { streamChat } from '../services/api';
+
+interface SSEOptions {
+  onToken?: (content: string) => void;
+  onToolStart?: (tool: string, input: any) => void;
+  onToolEnd?: (tool: string, output: any) => void;
+  onGeoJSON?: (layerId: string, data: any) => void;
+  onSafetyAlert?: (level: string, title: string, message: string) => void;
+  onDone?: () => void;
+  onError?: (err: string) => void;
+}
 
 export const useSSE = () => {
-  const [connectionState, setConnectionState] = useState<'idle'|'connecting'|'connected'|'error'>('idle');
-  const eventSourceRef = useRef<EventSource | null>(null);
-  const retryCountRef = useRef(0);
-  const maxRetries = 3;
+  const [connectionState, setConnectionState] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle');
+  const esRef = useRef<EventSource | null>(null);
+  const retryRef = useRef(0);
 
   const disconnect = useCallback(() => {
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
-      eventSourceRef.current = null;
-    }
+    esRef.current?.close();
+    esRef.current = null;
     setConnectionState('idle');
   }, []);
 
-  const connectSSE = useCallback((
-    message: string, 
-    threadId: string, 
+  const connect = useCallback((
+    message: string,
+    threadId: string,
     location: { lat: number; lon: number } | undefined,
-    onEvent: (event: SSEEvent) => void
+    opts: SSEOptions
   ) => {
     disconnect();
     setConnectionState('connecting');
+    retryRef.current = 0;
 
-    const connect = () => {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:8000';
+    const params = new URLSearchParams({
+      message,
+      thread_id: threadId,
+      ...(location ? { lat: String(location.lat), lon: String(location.lon) } : {}),
+    });
+
+    const attempt = () => {
       try {
-        const es = streamChat(message, threadId, location);
-        eventSourceRef.current = es;
+        const es = new EventSource(`${backendUrl}/api/chat/stream?${params}`);
+        esRef.current = es;
 
         es.onopen = () => {
           setConnectionState('connected');
-          retryCountRef.current = 0;
+          retryRef.current = 0;
         };
 
-        es.onmessage = (event) => {
+        es.onmessage = evt => {
           try {
-            const parsed: SSEEvent = JSON.parse(event.data);
-            onEvent(parsed);
+            const parsed: SSEEvent = JSON.parse(evt.data);
+            switch (parsed.type) {
+              case 'token':        opts.onToken?.(parsed.payload.content);                                              break;
+              case 'tool_start':   opts.onToolStart?.(parsed.payload.tool, parsed.payload.input);                      break;
+              case 'tool_end':     opts.onToolEnd?.(parsed.payload.tool, parsed.payload.output);                       break;
+              case 'geojson':      opts.onGeoJSON?.(parsed.payload.layer_id, parsed.payload.data);                     break;
+              case 'safety_alert': opts.onSafetyAlert?.(parsed.payload.level, parsed.payload.title, parsed.payload.message); break;
+              case 'done':         opts.onDone?.(); es.close(); setConnectionState('idle');                             break;
+            }
           } catch (e) {
-            console.error('Failed to parse SSE event', e);
+            console.error('SSE parse error:', e);
           }
         };
 
-        es.onerror = (_err) => {
+        es.onerror = () => {
           es.close();
           setConnectionState('error');
-          if (retryCountRef.current < maxRetries) {
-            const backoff = Math.pow(2, retryCountRef.current) * 1000;
-            retryCountRef.current += 1;
-            setTimeout(connect, backoff);
+          if (retryRef.current < 3) {
+            const delay = Math.pow(2, retryRef.current) * 1000;
+            retryRef.current++;
+            setTimeout(attempt, delay);
+          } else {
+            opts.onError?.('Connection failed after 3 retries');
           }
         };
       } catch (err) {
         setConnectionState('error');
+        opts.onError?.('Failed to create SSE connection');
       }
     };
 
-    connect();
+    attempt();
     return disconnect;
   }, [disconnect]);
 
   return {
-    connectSSE,
+    connect,
     disconnect,
     isConnected: connectionState === 'connected',
-    connectionState
+    connectionState,
   };
 };

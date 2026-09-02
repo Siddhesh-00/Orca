@@ -6,128 +6,139 @@ interface LayerControlsProps {
   onToggleLayer: (layerId: string) => void;
 }
 
-const IconWave = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M2 12c2.67 0 4-2 6.67-2s4 2 6.67 2 4-2 6.67-2" />
-  </svg>
-);
-
 const IconFish = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M22 12c0 0-4-6-10-6S2 12 2 12s4 6 10 6 10-6 10-6z" />
     <circle cx="17" cy="12" r="1" />
   </svg>
 );
 
-const IconThermometer = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+const IconTherm = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z" />
   </svg>
 );
 
-const IconArrow = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <line x1="5" y1="12" x2="19" y2="12" />
-    <polyline points="12 5 19 12 12 19" />
-  </svg>
-);
-
 const IconShip = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M3 12h18l-2 6H5l-2-6z" />
-    <path d="M12 2v10" />
-    <path d="M8 7h8" />
+    <path d="M12 2v10M8 7h8" />
   </svg>
 );
 
-const IconEye = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-    <circle cx="12" cy="12" r="3" />
+const IconWave = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M2 12c2.67 0 4-2 6.67-2s4 2 6.67 2 4-2 6.67-2" />
   </svg>
 );
+
+const IconLayer = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <polygon points="12 2 2 7 12 12 22 7 12 2" />
+    <polyline points="2 17 12 22 22 17" />
+    <polyline points="2 12 12 17 22 12" />
+  </svg>
+);
+
+const IconChevron = ({ up }: { up: boolean }) => (
+  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d={up ? 'M18 15l-6-6-6 6' : 'M6 9l6 6 6-6'} />
+  </svg>
+);
+
+function getIcon(type: GeoJSONLayer['type']) {
+  switch (type) {
+    case 'pfz': return <IconFish />;
+    case 'sst': return <IconTherm />;
+    case 'vessel': return <IconShip />;
+    case 'wave': return <IconWave />;
+    default: return <IconLayer />;
+  }
+}
 
 export default function LayerControls({ layers, onToggleLayer }: LayerControlsProps) {
-  const [expanded, setExpanded] = useState(true);
-
-  const getIcon = (type: string) => {
-    switch(type) {
-      case 'wave': return <IconWave />;
-      case 'pfz': return <IconFish />;
-      case 'sst': return <IconThermometer />;
-      case 'current': return <IconArrow />;
-      case 'vessel': return <IconShip />;
-      default: return <IconEye />;
-    }
-  };
+  const [open, setOpen] = useState(true);
 
   return (
     <div style={{
-      backgroundColor: 'rgba(15, 29, 50, 0.9)',
-      border: '1px solid var(--orca-border)',
-      width: '200px',
-      fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
-      color: 'var(--orca-text-primary)'
+      backgroundColor: 'rgba(10, 22, 40, 0.92)',
+      border: '1px solid rgba(255,255,255,0.08)',
+      width: '192px',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      color: 'var(--orca-text-primary)',
     }}>
-      <div 
-        onClick={() => setExpanded(!expanded)}
+      <button
+        onClick={() => setOpen(o => !o)}
         style={{
-          padding: '8px 12px',
-          cursor: 'pointer',
+          width: '100%',
           display: 'flex',
-          justifyContent: 'space-between',
           alignItems: 'center',
-          backgroundColor: 'var(--orca-bg-tertiary)',
-          fontSize: '14px',
-          fontWeight: 500,
-          borderBottom: expanded ? '1px solid var(--orca-border)' : 'none'
+          justifyContent: 'space-between',
+          padding: '8px 10px',
+          background: 'none',
+          border: 'none',
+          color: 'var(--orca-text-secondary)',
+          cursor: 'pointer',
+          fontSize: '11px',
+          textTransform: 'uppercase',
+          letterSpacing: '0.06em',
+          fontFamily: 'ui-monospace, monospace',
+          borderBottom: open ? '1px solid rgba(255,255,255,0.06)' : 'none',
         }}
       >
-        <span>Layers</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0)' }}>
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </div>
+        <span>Map Layers</span>
+        <IconChevron up={open} />
+      </button>
 
-      <div style={{
-        maxHeight: expanded ? '300px' : '0',
-        overflow: 'hidden',
-        transition: 'max-height 0.3s ease-in-out'
-      }}>
-        <div style={{ padding: '8px' }}>
+      {open && (
+        <div style={{ padding: '6px' }}>
+          {layers.length === 0 && (
+            <div style={{
+              fontSize: '11px',
+              color: 'var(--orca-text-muted)',
+              padding: '8px',
+              textAlign: 'center',
+              fontFamily: 'ui-monospace, monospace',
+            }}>
+              No layers
+            </div>
+          )}
           {layers.map(layer => (
-            <div
+            <button
               key={layer.id}
               onClick={() => onToggleLayer(layer.id)}
               style={{
+                width: '100%',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                padding: '8px',
+                gap: 8,
+                padding: '7px 8px',
+                marginBottom: 2,
+                background: 'none',
+                border: `1px solid ${layer.visible ? 'rgba(45,212,191,0.3)' : 'rgba(255,255,255,0.04)'}`,
+                backgroundColor: layer.visible ? 'rgba(45,212,191,0.06)' : 'transparent',
+                color: layer.visible ? 'var(--orca-accent)' : 'var(--orca-text-muted)',
                 cursor: 'pointer',
-                marginBottom: '4px',
-                backgroundColor: layer.visible ? 'var(--orca-bg-surface)' : 'transparent',
-                border: `1px solid ${layer.visible ? 'var(--orca-accent)' : 'transparent'}`,
-                opacity: layer.visible ? 1 : 0.6,
-                fontSize: '12px'
+                fontSize: '12px',
+                textAlign: 'left',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: layer.visible ? 'var(--orca-accent)' : 'var(--orca-text-muted)' }}>
-                {getIcon(layer.type)}
-              </div>
-              <div style={{ flex: 1 }}>{layer.id}</div>
-              <div style={{ color: layer.visible ? 'var(--orca-text-primary)' : 'var(--orca-text-muted)' }}>
-                <IconEye />
-              </div>
-            </div>
+              <span style={{ flexShrink: 0 }}>{getIcon(layer.type)}</span>
+              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {layer.label || layer.id}
+              </span>
+              {/* Toggle indicator */}
+              <span style={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                backgroundColor: layer.visible ? 'var(--orca-accent)' : 'rgba(255,255,255,0.15)',
+                flexShrink: 0,
+              }} />
+            </button>
           ))}
-          {layers.length === 0 && (
-            <div style={{ fontSize: '12px', color: 'var(--orca-text-muted)', textAlign: 'center', padding: '8px' }}>
-              No layers available
-            </div>
-          )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

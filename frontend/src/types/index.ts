@@ -14,6 +14,16 @@ export interface ToolResult {
   geojson?: GeoJSON.FeatureCollection;
 }
 
+export interface ChatSession {
+  id: string;
+  title: string;
+  messages: ChatMessage[];
+  createdAt: string;
+  updatedAt: string;
+  locationName?: string;
+  locationCoords?: { lat: number; lon: number };
+}
+
 export interface SSEEvent {
   type: 'token' | 'tool_start' | 'tool_end' | 'geojson' | 'safety_alert' | 'done';
   payload: any;
@@ -58,6 +68,7 @@ export interface MapViewport {
 
 export interface GeoJSONLayer {
   id: string;
+  label: string;
   data: any;
   type: 'pfz' | 'sst' | 'current' | 'wave' | 'vessel' | 'custom';
   visible: boolean;
