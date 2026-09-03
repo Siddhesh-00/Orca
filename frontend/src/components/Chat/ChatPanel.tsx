@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { ChatMessage, SafetyAlert as ISafetyAlert } from '../../types';
 import MessageBubble from './MessageBubble';
 import InputBar from './InputBar';
@@ -12,172 +12,153 @@ interface ChatPanelProps {
   onDismissAlert?: (index: number) => void;
   attachedLocation?: { lat: number; lon: number };
   onAttachLocation?: (loc: { lat: number; lon: number } | undefined) => void;
-  onNewSession?: () => void;
 }
+
+// ── Starter queries ───────────────────────────────────────────────────────────
+
+const STARTERS = [
+  { label: 'Wave forecast',   query: 'Wave conditions near Mumbai today' },
+  { label: 'Safety check',    query: 'Is it safe to fish near Kochi today?' },
+  { label: 'Fishing zones',   query: 'Show fishing zones off Chennai coast' },
+  { label: 'Temperature',     query: 'Sea surface temperature near Goa' },
+  { label: 'Wind conditions', query: 'Wind and swell near Mangalore' },
+  { label: 'Tide schedule',   query: 'Tide forecast for Arabian Sea' },
+];
 
 // ── Empty state ───────────────────────────────────────────────────────────────
 
-const STARTER_QUERIES = [
-  { label: 'Wave forecast', query: "What are the wave conditions near Mumbai?" },
-  { label: 'Safety check', query: "Is it safe to go fishing near Kochi today?" },
-  { label: 'Fishing zones', query: "Show me fishing zones off the Chennai coast" },
-  { label: 'Sea temperature', query: "What is the sea surface temperature near Goa?" },
-  { label: 'Wind conditions', query: "Wind and swell conditions near Mangalore" },
-  { label: 'Tide information', query: "Tide forecast for the Arabian Sea" },
-];
-
 const EmptyState: React.FC<{ onQuery: (q: string) => void }> = ({ onQuery }) => (
-  <div style={{
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '32px 24px',
-    maxWidth: 520,
-    margin: '0 auto',
-    width: '100%',
-  }}>
-    {/* Header */}
-    <div style={{ marginBottom: 32, textAlign: 'center' }}>
+  <div
+    className="anim-fade-in"
+    style={{
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '32px 20px',
+      maxWidth: 480,
+      margin: '0 auto',
+      width: '100%',
+    }}
+  >
+    {/* Title */}
+    <div style={{ textAlign: 'center', marginBottom: 28 }}>
       <div style={{
-        fontFamily: 'ui-monospace, monospace',
-        fontSize: '11px',
-        letterSpacing: '0.14em',
-        color: 'var(--orca-text-muted)',
-        textTransform: 'uppercase',
-        marginBottom: 12,
+        fontSize: 10, color: 'var(--orca-text-muted)',
+        fontFamily: 'ui-monospace, monospace', letterSpacing: '0.12em',
+        textTransform: 'uppercase', marginBottom: 10,
       }}>
-        ORCA · Marine Ecosystem Intelligence
+        Marine Ecosystem Intelligence
       </div>
       <h1 style={{
-        fontSize: '22px',
-        fontWeight: 600,
-        color: 'var(--orca-text-primary)',
-        margin: 0,
-        lineHeight: 1.3,
+        fontSize: 22, fontWeight: 600, color: 'var(--orca-text-primary)',
+        margin: 0, lineHeight: 1.3,
       }}>
         Ask about ocean conditions
       </h1>
       <p style={{
-        fontSize: '13px',
-        color: 'var(--orca-text-secondary)',
-        marginTop: 8,
-        lineHeight: 1.6,
+        fontSize: 13, color: 'var(--orca-text-secondary)',
+        margin: '10px 0 0', lineHeight: 1.65,
       }}>
-        Live data from Open-Meteo Marine API. Covers wave height, wind, sea temperature, safety advisories, and potential fishing zones.
+        Live data from Open-Meteo Marine API. Covers waves, wind, sea temperature, tides, safety, and fishing zones.
       </p>
     </div>
 
     {/* Divider */}
-    <div style={{
-      width: '100%',
-      borderTop: '1px solid rgba(255,255,255,0.05)',
-      marginBottom: 20,
-    }} />
+    <div style={{ width: '100%', borderTop: '1px solid rgba(255,255,255,0.06)', marginBottom: 18 }} />
 
     {/* Starter queries */}
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 6,
-      width: '100%',
-    }}>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 5 }}>
       <div style={{
-        fontSize: '10px',
-        color: 'var(--orca-text-muted)',
-        fontFamily: 'ui-monospace, monospace',
-        textTransform: 'uppercase',
-        letterSpacing: '0.06em',
-        marginBottom: 4,
+        fontSize: 9, color: 'var(--orca-text-muted)',
+        fontFamily: 'ui-monospace, monospace', textTransform: 'uppercase',
+        letterSpacing: '0.07em', marginBottom: 4,
       }}>
         Try asking
       </div>
-      {STARTER_QUERIES.map(({ label, query }) => (
-        <button
-          key={label}
-          onClick={() => onQuery(query)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 12,
-            padding: '9px 12px',
-            background: 'none',
-            border: '1px solid rgba(255,255,255,0.05)',
-            color: 'var(--orca-text-secondary)',
-            fontSize: '13px',
-            textAlign: 'left',
-            cursor: 'pointer',
-            fontFamily: 'system-ui, sans-serif',
-          }}
-          onMouseEnter={e => {
-            (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(45,212,191,0.3)';
-            (e.currentTarget as HTMLButtonElement).style.color = 'var(--orca-text-primary)';
-          }}
-          onMouseLeave={e => {
-            (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.05)';
-            (e.currentTarget as HTMLButtonElement).style.color = 'var(--orca-text-secondary)';
-          }}
-        >
-          <span>{query}</span>
-          <span style={{
-            fontSize: '10px',
-            color: 'var(--orca-text-muted)',
-            fontFamily: 'ui-monospace, monospace',
-            flexShrink: 0,
-          }}>
-            {label}
-          </span>
-        </button>
-      ))}
+      <div className="stagger-children" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {STARTERS.map(({ label, query }) => (
+          <button
+            key={label}
+            onClick={() => onQuery(query)}
+            className="anim-slide-up"
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: 12,
+              padding: '9px 12px',
+              background: 'none',
+              border: '1px solid rgba(255,255,255,0.06)',
+              color: 'var(--orca-text-secondary)',
+              fontSize: 13,
+              textAlign: 'left',
+              cursor: 'pointer',
+              transition: 'border-color 0.15s, color 0.15s',
+              animationFillMode: 'both',
+            }}
+            onMouseEnter={e => {
+              const b = e.currentTarget as HTMLButtonElement;
+              b.style.borderColor = 'rgba(45,212,191,0.3)';
+              b.style.color = 'var(--orca-text-primary)';
+            }}
+            onMouseLeave={e => {
+              const b = e.currentTarget as HTMLButtonElement;
+              b.style.borderColor = 'rgba(255,255,255,0.06)';
+              b.style.color = 'var(--orca-text-secondary)';
+            }}
+          >
+            <span>{query}</span>
+            <span style={{
+              fontSize: 9, color: 'var(--orca-text-muted)',
+              fontFamily: 'ui-monospace, monospace', flexShrink: 0,
+              border: '1px solid rgba(255,255,255,0.08)', padding: '2px 6px',
+            }}>
+              {label}
+            </span>
+          </button>
+        ))}
+      </div>
     </div>
 
-    {/* Footer note */}
     <div style={{
-      marginTop: 24,
-      fontSize: '10px',
-      color: 'var(--orca-text-muted)',
-      fontFamily: 'ui-monospace, monospace',
-      textAlign: 'center',
-      lineHeight: 1.6,
+      marginTop: 20, fontSize: 10, color: 'var(--orca-text-muted)',
+      fontFamily: 'ui-monospace, monospace', textAlign: 'center', lineHeight: 1.6,
     }}>
-      Data from Open-Meteo Marine API · Nominatim geocoding
-      <br />
-      No API keys required · Refreshed per query
+      Open-Meteo Marine API · Nominatim geocoding · No API keys required
     </div>
   </div>
 );
 
-// ── Streaming indicator ───────────────────────────────────────────────────────
+// ── Scroll-to-bottom button ───────────────────────────────────────────────────
 
-const StreamIndicator: React.FC = () => (
-  <div style={{
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    padding: '8px 0',
-    color: 'var(--orca-text-muted)',
-    fontSize: '11px',
-    fontFamily: 'ui-monospace, monospace',
-  }}>
-    <div style={{ display: 'flex', gap: 3 }}>
-      {[0, 1, 2].map(i => (
-        <span
-          key={i}
-          style={{
-            width: 4,
-            height: 4,
-            backgroundColor: 'var(--orca-accent)',
-            display: 'inline-block',
-            animation: 'pulse-subtle 1.2s ease-in-out infinite',
-            animationDelay: i * 0.2 + 's',
-          }}
-        />
-      ))}
-    </div>
-    <span>Fetching marine data</span>
-  </div>
+const ScrollDownBtn: React.FC<{ onClick: () => void }> = ({ onClick }) => (
+  <button
+    onClick={onClick}
+    className="anim-scale-in"
+    style={{
+      position: 'absolute',
+      bottom: 16,
+      right: 16,
+      backgroundColor: 'var(--orca-bg-surface)',
+      border: '1px solid rgba(255,255,255,0.12)',
+      color: 'var(--orca-text-secondary)',
+      padding: '5px 10px',
+      fontSize: 10,
+      cursor: 'pointer',
+      fontFamily: 'ui-monospace, monospace',
+      zIndex: 10,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 5,
+    }}
+  >
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M12 5v14M5 12l7 7 7-7" />
+    </svg>
+    New messages
+  </button>
 );
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -192,83 +173,87 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   onAttachLocation,
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [isAtBottom, setIsAtBottom] = useState(true);
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
+  const isAtBottomRef = useRef(true);
 
-  // Auto-scroll when new content arrives
-  useEffect(() => {
-    if (isAtBottom && scrollRef.current) {
-      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-    }
-  }, [messages, isStreaming, isAtBottom]);
-
-  const handleScroll = () => {
+  const scrollToBottom = useCallback((smooth = true) => {
     const el = scrollRef.current;
     if (!el) return;
-    const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-    setIsAtBottom(distFromBottom < 80);
-  };
+    el.scrollTo({ top: el.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+  }, []);
+
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
+    isAtBottomRef.current = dist < 80;
+    setShowScrollBtn(dist > 200);
+  }, []);
+
+  // Auto-scroll when new messages arrive
+  useEffect(() => {
+    if (isAtBottomRef.current) {
+      scrollToBottom();
+    }
+  }, [messages, scrollToBottom]);
+
+  // Scroll to bottom on first render
+  useEffect(() => {
+    scrollToBottom(false);
+  }, [scrollToBottom]);
 
   return (
-    <div style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--orca-bg-primary)' }}>
-      {/* Safety alerts */}
-      <SafetyBanner alerts={safetyAlerts} onDismiss={onDismissAlert} />
-
-      {/* Message area */}
-      <div
-        ref={scrollRef}
-        onScroll={handleScroll}
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: '0 16px',
-        }}
-      >
-        {messages.length === 0 ? (
-          <EmptyState onQuery={onSendMessage} />
-        ) : (
-          <div style={{ maxWidth: 720, margin: '0 auto', width: '100%', paddingTop: 24, paddingBottom: 16 }}>
-            {messages.map((msg, idx) => (
-              <MessageBubble
-                key={msg.id}
-                message={msg}
-                isStreamingLast={
-                  isStreaming &&
-                  idx === messages.length - 1 &&
-                  msg.role === 'assistant'
-                }
-              />
-            ))}
-            {/* Show dots if streaming but no content yet */}
-            {isStreaming && messages[messages.length - 1]?.content === '' && (
-              <StreamIndicator />
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Scroll-to-bottom button */}
-      {!isAtBottom && messages.length > 0 && (
-        <button
-          onClick={() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })}
-          style={{
-            position: 'absolute',
-            bottom: 120,
-            right: 24,
-            background: 'var(--orca-bg-surface)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            color: 'var(--orca-text-secondary)',
-            padding: '6px 10px',
-            fontSize: '11px',
-            cursor: 'pointer',
-            fontFamily: 'ui-monospace, monospace',
-            zIndex: 10,
-          }}
-        >
-          Scroll down
-        </button>
+    <div style={{
+      height: '100%',
+      width: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      backgroundColor: 'var(--orca-bg-primary)',
+      overflow: 'hidden',
+    }}>
+      {/* Safety banners */}
+      {safetyAlerts.length > 0 && (
+        <SafetyBanner alerts={safetyAlerts} onDismiss={onDismissAlert} />
       )}
 
-      {/* Input */}
+      {/* Message area — position: relative to anchor scroll button */}
+      <div
+        style={{ flex: 1, position: 'relative', overflow: 'hidden' }}
+      >
+        <div
+          ref={scrollRef}
+          onScroll={handleScroll}
+          style={{
+            height: '100%',
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            padding: '0 16px',
+          }}
+        >
+          {messages.length === 0 ? (
+            <EmptyState onQuery={onSendMessage} />
+          ) : (
+            <div style={{ maxWidth: 720, margin: '0 auto', paddingTop: 24, paddingBottom: 12 }}>
+              {messages.map((msg, idx) => (
+                <MessageBubble
+                  key={msg.id}
+                  message={msg}
+                  isStreamingLast={
+                    isStreaming &&
+                    idx === messages.length - 1 &&
+                    msg.role === 'assistant'
+                  }
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Scroll-to-bottom button — correctly inside positioned parent */}
+        {showScrollBtn && <ScrollDownBtn onClick={() => scrollToBottom()} />}
+      </div>
+
+      {/* Input bar */}
       <div style={{ maxWidth: 720, margin: '0 auto', width: '100%' }}>
         <InputBar
           onSendMessage={onSendMessage}

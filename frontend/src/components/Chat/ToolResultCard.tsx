@@ -1,111 +1,145 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { ToolResult } from '../../types';
 
 interface ToolResultCardProps {
   result: ToolResult;
 }
 
-const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
+const ChevronIcon = ({ open }: { open: boolean }) => (
   <svg
-    width="12"
-    height="12"
-    viewBox="0 0 16 16"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    style={{
-      transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-      transition: 'transform 0.2s ease'
-    }}
+    width="10" height="10" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="2"
+    style={{ transform: open ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s ease' }}
   >
-    <path d="M4 6l4 4 4-4" />
+    <path d="M6 9l6 6 6-6" />
   </svg>
 );
 
-const SuccessIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="var(--orca-success)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 8l3 3 7-7" />
-  </svg>
-);
+const StatusIcon = ({ status }: { status: ToolResult['status'] }) => {
+  if (status === 'loading') return (
+    <span style={{ display: 'flex', gap: 3 }}>
+      {[0,1,2].map(i => (
+        <span key={i} className="typing-dot" style={{ animationDelay: i * 0.15 + 's' }} />
+      ))}
+    </span>
+  );
+  if (status === 'success') return (
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--orca-success)" strokeWidth="2.5" strokeLinecap="round">
+      <path d="M20 6L9 17l-5-5" />
+    </svg>
+  );
+  return (
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--orca-danger)" strokeWidth="2.5" strokeLinecap="round">
+      <path d="M18 6L6 18M6 6l12 12" />
+    </svg>
+  );
+};
 
-const ErrorIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="var(--orca-danger)" strokeWidth="2" strokeLinecap="round">
-    <path d="M4 4l8 8M12 4l-8 8" />
-  </svg>
-);
+function formatOutput(output: any): React.ReactNode {
+  if (output === null || output === undefined) return null;
+
+  if (typeof output === 'object') {
+    const entries = Object.entries(output).slice(0, 10);
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {entries.map(([k, v]) => (
+          <div key={k} style={{
+            display: 'flex', justifyContent: 'space-between', gap: 12,
+            padding: '2px 0', borderBottom: '1px solid rgba(255,255,255,0.04)',
+          }}>
+            <span style={{ fontSize: 10, color: 'var(--orca-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'ui-monospace, monospace' }}>
+              {k}
+            </span>
+            <span style={{ fontSize: 11, color: 'var(--orca-text-primary)', fontFamily: 'ui-monospace, monospace' }}>
+              {typeof v === 'number' ? (Number.isInteger(v) ? v : (v as number).toFixed(2)) : String(v)}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <span style={{ fontSize: 11, color: 'var(--orca-text-secondary)', fontFamily: 'ui-monospace, monospace' }}>
+      {String(output)}
+    </span>
+  );
+}
 
 const ToolResultCard: React.FC<ToolResultCardProps> = ({ result }) => {
   const [expanded, setExpanded] = useState(false);
-
-  const renderContent = () => {
-    if (result.status === 'loading') {
-      return (
-        <div className="flex flex-col gap-2 p-2">
-          <div className="h-2 w-3/4 bg-[var(--orca-bg-tertiary)] rounded animate-[pulse-subtle_2s_infinite]"></div>
-          <div className="h-2 w-1/2 bg-[var(--orca-bg-tertiary)] rounded animate-[pulse-subtle_2s_infinite]"></div>
-        </div>
-      );
-    }
-
-    if (result.status === 'error') {
-      return <div className="text-xs text-[var(--orca-danger)] p-2">{result.output || 'Execution failed'}</div>;
-    }
-
-    if (result.geojson) {
-      return <div className="text-xs text-[var(--orca-accent)] cursor-pointer hover:underline p-2">View on map</div>;
-    }
-
-    if (typeof result.output === 'object' && result.output !== null) {
-      return (
-        <div className="grid grid-cols-2 gap-2 p-2">
-          {Object.entries(result.output).slice(0, 6).map(([k, v]) => (
-            <div key={k} className="flex flex-col">
-              <span className="text-[10px] text-[var(--orca-text-muted)] uppercase tracking-wider">{k}</span>
-              <span className="text-xs text-[var(--orca-text-primary)] font-mono">{String(v)}</span>
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    return <div className="text-xs text-[var(--orca-text-secondary)] p-2 font-mono break-words">{String(result.output)}</div>;
-  };
+  const hasOutput = result.output !== null && result.output !== undefined;
 
   return (
-    <div className="my-2 border border-[var(--orca-border)] rounded bg-[var(--orca-bg-secondary)] overflow-hidden max-w-sm">
+    <div style={{
+      border: '1px solid rgba(255,255,255,0.07)',
+      backgroundColor: 'rgba(10,22,40,0.6)',
+      fontSize: 12,
+      maxWidth: 420,
+      animation: 'fadeIn 0.25s ease',
+    }}>
+      {/* Header row */}
       <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between p-2 hover:bg-[var(--orca-bg-tertiary)] transition-colors text-left"
+        onClick={() => hasOutput && setExpanded(e => !e)}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '6px 10px',
+          background: 'none',
+          border: 'none',
+          cursor: hasOutput ? 'pointer' : 'default',
+          color: 'var(--orca-text-primary)',
+          textAlign: 'left',
+        }}
+        onMouseEnter={e => {
+          if (hasOutput) (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(255,255,255,0.03)';
+        }}
+        onMouseLeave={e => {
+          (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent';
+        }}
       >
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-xs text-[var(--orca-text-primary)]">{result.toolName}</span>
-          {result.status === 'success' && <SuccessIcon />}
-          {result.status === 'error' && <ErrorIcon />}
-          {result.status === 'loading' && (
-            <span className="text-[10px] text-[var(--orca-accent)] animate-[pulse-subtle_2s_infinite]">Fetching...</span>
-          )}
-        </div>
-        <div className="text-[var(--orca-text-muted)]">
-          <ChevronIcon expanded={expanded} />
-        </div>
-      </button>
-      
-      <AnimatePresence initial={false}>
-        {expanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="border-t border-[var(--orca-border)] bg-[var(--orca-bg-primary)]"
-          >
-            {renderContent()}
-          </motion.div>
+        <StatusIcon status={result.status} />
+        <span style={{
+          flex: 1,
+          fontFamily: 'ui-monospace, monospace',
+          fontSize: 11,
+          color: result.status === 'loading' ? 'var(--orca-text-muted)' : 'var(--orca-text-secondary)',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}>
+          {result.toolName}
+        </span>
+        {result.input?.location && (
+          <span style={{
+            fontSize: 9, color: 'var(--orca-accent)', fontFamily: 'ui-monospace, monospace',
+            border: '1px solid rgba(45,212,191,0.2)', padding: '1px 5px', flexShrink: 0,
+          }}>
+            {result.input.location}
+          </span>
         )}
-      </AnimatePresence>
+        {hasOutput && (
+          <span style={{ color: 'var(--orca-text-muted)', flexShrink: 0 }}>
+            <ChevronIcon open={expanded} />
+          </span>
+        )}
+      </button>
+
+      {/* Expanded output */}
+      {expanded && hasOutput && (
+        <div
+          className="anim-slide-up"
+          style={{
+            borderTop: '1px solid rgba(255,255,255,0.06)',
+            padding: '8px 10px',
+            backgroundColor: 'rgba(0,0,0,0.2)',
+          }}
+        >
+          {formatOutput(result.output)}
+        </div>
+      )}
     </div>
   );
 };

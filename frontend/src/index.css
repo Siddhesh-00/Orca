@@ -32,6 +32,8 @@
   --orca-danger: #ef4444;
   --orca-warning: #f59e0b;
   --orca-success: #10b981;
+  --mobile-nav-height: 56px;
+  --header-height: 44px;
 }
 
 *, *::before, *::after {
@@ -43,9 +45,18 @@ html, body {
   padding: 0;
   background-color: var(--orca-bg-primary);
   color: var(--orca-text-primary);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
+}
+
+/* Prevent body scroll on mobile */
+@media (max-width: 767px) {
+  html, body, #root {
+    height: 100%;
+    overflow: hidden;
+  }
 }
 
 ::selection {
@@ -53,36 +64,142 @@ html, body {
   color: var(--orca-bg-primary);
 }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: var(--orca-bg-primary);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--orca-bg-surface);
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--orca-border-active);
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--orca-bg-primary); }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+
+/* ── Animations ────────────────────────────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
-@keyframes wave {
-  0% { transform: translateX(0); }
-  50% { transform: translateX(-10px); }
-  100% { transform: translateX(0); }
+@keyframes slideUp {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-12px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(12px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.96); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
 }
 
 @keyframes pulse-subtle {
-  0% { opacity: 0.6; }
-  50% { opacity: 1; }
-  100% { opacity: 0.6; }
+  0%   { opacity: 0.55; }
+  50%  { opacity: 1;    }
+  100% { opacity: 0.55; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1);    opacity: 1;   }
+  50%       { transform: scale(1.4); opacity: 0.6; }
+}
+
+@keyframes wave {
+  0%   { transform: translateX(0);    }
+  50%  { transform: translateX(-10px); }
+  100% { transform: translateX(0);    }
 }
 
 @keyframes float {
-  0% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
-  100% { transform: translateY(0); }
+  0%   { transform: translateY(0);   }
+  50%  { transform: translateY(-5px); }
+  100% { transform: translateY(0);   }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes borderGlow {
+  0%   { border-color: rgba(45,212,191,0.2); }
+  50%  { border-color: rgba(45,212,191,0.5); }
+  100% { border-color: rgba(45,212,191,0.2); }
+}
+
+@keyframes scanLine {
+  0%   { top: 0%; }
+  100% { top: 100%; }
+}
+
+@keyframes typing {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30%           { opacity: 1;   transform: translateY(-4px); }
+}
+
+/* ── Utility animation classes ─────────────────────────────────────────────── */
+
+.anim-fade-in    { animation: fadeIn    0.3s ease forwards; }
+.anim-slide-up   { animation: slideUp   0.3s ease forwards; }
+.anim-scale-in   { animation: scaleIn   0.25s ease forwards; }
+.anim-float      { animation: float     3s ease-in-out infinite; }
+.anim-pulse      { animation: pulse-subtle 2s ease-in-out infinite; }
+
+/* Stagger children */
+.stagger-children > *:nth-child(1) { animation-delay: 0ms;   }
+.stagger-children > *:nth-child(2) { animation-delay: 60ms;  }
+.stagger-children > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 180ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 300ms; }
+
+/* ── Shimmer loading placeholder ───────────────────────────────────────────── */
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.03) 0%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(255,255,255,0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+}
+
+/* ── Typing indicator dots ─────────────────────────────────────────────────── */
+
+.typing-dot {
+  width: 4px;
+  height: 4px;
+  background: var(--orca-accent);
+  display: inline-block;
+  animation: typing 1.2s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.15s; }
+.typing-dot:nth-child(3) { animation-delay: 0.30s; }
+
+/* ── MapLibre popup override ────────────────────────────────────────────────── */
+
+.maplibregl-popup-content {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+.maplibregl-popup-tip { display: none !important; }
+.maplibregl-ctrl-attrib { font-size: 10px !important; opacity: 0.45; }
+.maplibregl-ctrl-group {
+  background: rgba(10,22,40,0.92) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-radius: 0 !important;
+}
+.maplibregl-ctrl-group button {
+  background: transparent !important;
+}
+.maplibregl-ctrl button .maplibregl-ctrl-icon {
+  filter: invert(0.7);
 }
